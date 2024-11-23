@@ -26,7 +26,8 @@ form.addEventListener('submit', function (e) {
 
     // Hide warning message if there's any code
     warningMessage.style.display = 'none';
-
+    resultDiv.textContent = 'Running...';
+    resultDiv.classList.remove('error');
     // Make API request to Flask backend to run the code
     fetch('/run_code', {
         method: 'POST',
@@ -69,6 +70,31 @@ codeArea.addEventListener('keydown', function(event) {
             event.preventDefault(); // Prevent default Enter behavior
         }
     }
+
+    // Automatically insert closing parenthesis when '(', '[', '{' is typed
+    if (event.key === '(' || event.key === '[' || event.key === '{' || event.key === '"' || event.key === "'") {
+        let closingChar = '';
+        // Handle different types of opening brackets
+        if (event.key === '(') {
+            closingChar = ')';
+        } else if (event.key === '[') {
+            closingChar = ']';
+        } else if (event.key === '{') {
+            closingChar = '}';
+        } else if (event.key === '"') {
+            closingChar = '"';
+        } else if (event.key === "'") {
+            closingChar = "'";
+        }
+
+        // Insert the closing bracket after the opening bracket
+        const cursorPosition = codeArea.selectionStart;
+        const codeText = codeArea.value;
+
+        codeArea.value = codeText.substring(0, cursorPosition) + event.key + closingChar + codeText.substring(cursorPosition);
+        codeArea.setSelectionRange(cursorPosition + 1, cursorPosition + 1); // Place cursor between the brackets or quotes
+        event.preventDefault(); // Prevent default insertion
+    }
 });
 
 // Disable copy, cut, paste, and drag-and-drop in the textarea
@@ -110,7 +136,7 @@ document.addEventListener('visibilitychange', function() {
         warningMessage.style.display = 'block';
 
         // Refresh the page after 3 warnings
-        if (warningCount >= 100) {
+        if (warningCount >= 20) {
             alert('You have received 3 warnings. The page will now refresh.');
             window.location.reload(); // Refresh the page
         }
