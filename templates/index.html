@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Python Code Executor</title>
-    <link rel="stylesheet" href="{{url_for('static',filename = 'styles.css')}}"  />
+    <link rel="stylesheet" href="{{url_for('static',filename = 'styles.css')}}" />
 </head>
 <body>
     <div class="container">
         <!-- Description Section (Left Side) -->
         <div class="description-section">
-            <h2>Python Code Executor</h2>
+            <h2>Swaping question </h2>
             <p>Write your Python code in the editor on the right. Once you're ready, click the "Run Code" button to execute your code. The output will appear below the editor. You can try testing simple scripts or solving coding problems here!</p>
+            <p>Example input  ==2 ; output == 10 </p>
         </div>
 
         <!-- Code Runner Section (Right Side) -->
@@ -22,6 +23,7 @@
                 <button type="submit">Run Code</button>
             </form>
             <div id="result" class="output"></div>
+            <div id="warningMessage" class="warning" style="display:none;"></div>
         </div>
     </div>
 
@@ -29,12 +31,33 @@
         const form = document.getElementById('codeForm');
         const resultDiv = document.getElementById('result');
         const codeArea = document.getElementById('code');
+        const warningMessage = document.getElementById('warningMessage');
+        let warningCount = 0;
 
         form.addEventListener('submit', function (e) {
             e.preventDefault(); // Prevent form submission
 
             const code = codeArea.value;
 
+            // Display warning if needed
+            if (code.trim() === "") {
+                warningCount++;
+                warningMessage.textContent = `Warning ${warningCount}: You haven't written any code.`;
+                warningMessage.style.display = 'block';
+                
+                // Refresh the page after 3 warnings
+                if (warningCount >= 3) {
+                    alert('You have received 3 warnings. The page will now refresh.');
+                    window.location.reload(); // Refresh the page
+                }
+
+                return; // Do not proceed with code execution if the code is empty
+            }
+
+            // Hide warning message if there's any code
+            warningMessage.style.display = 'none';
+            resultDiv.textContent = 'Running...';
+            resultDiv.classList.remove('error');
             // Make API request to Flask backend to run the code
             fetch('/run_code', {
                 method: 'POST',
@@ -77,6 +100,31 @@
                     event.preventDefault(); // Prevent default Enter behavior
                 }
             }
+
+            // Automatically insert closing parenthesis when '(', '[', '{' is typed
+            if (event.key === '(' || event.key === '[' || event.key === '{' || event.key === '"' || event.key === "'") {
+                let closingChar = '';
+                // Handle different types of opening brackets
+                if (event.key === '(') {
+                    closingChar = ')';
+                } else if (event.key === '[') {
+                    closingChar = ']';
+                } else if (event.key === '{') {
+                    closingChar = '}';
+                } else if (event.key === '"') {
+                    closingChar = '"';
+                } else if (event.key === "'") {
+                    closingChar = "'";
+                }
+
+                // Insert the closing bracket after the opening bracket
+                const cursorPosition = codeArea.selectionStart;
+                const codeText = codeArea.value;
+
+                codeArea.value = codeText.substring(0, cursorPosition) + event.key + closingChar + codeText.substring(cursorPosition);
+                codeArea.setSelectionRange(cursorPosition + 1, cursorPosition + 1); // Place cursor between the brackets or quotes
+                event.preventDefault(); // Prevent default insertion
+            }
         });
 
         // Disable copy, cut, paste, and drag-and-drop in the textarea
@@ -108,9 +156,23 @@
             event.preventDefault();
             alert('Drag and drop is disabled in this editor.');
         });
+
+        // Listen to visibility changes (detect if user switches tabs)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // User switched to another tab
+                warningCount++;
+                warningMessage.textContent = `Warning ${warningCount}: You've switched tabs.`;
+                warningMessage.style.display = 'block';
+
+                // Refresh the page after 3 warnings
+                if (warningCount >= 20) {
+                    alert('You have received 3 warnings. The page will now refresh.');
+                    window.location.reload(); // Refresh the page
+                }
+            }
+        });
     </script>
 </body>
 </html>
-
-
 
