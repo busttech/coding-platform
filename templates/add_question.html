@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Question</title>
+</head>
+<body>
+    <h1>Add a New Question</h1>
+    <form action="{{ url_for('add_question') }}" method="POST">
+        <label for="title">Title:</label><br>
+        <input type="text" id="title" name="title" required><br><br>
+
+        <label for="what_to_do">What to do (description):</label><br>
+        <textarea id="what_to_do" name="what_to_do" rows="4" cols="50" required></textarea><br><br>
+
+        <label for="example_count">Number of Examples:</label><br>
+        <input type="number" id="example_count" name="example_count" min="1" value="1" required><br><br>
+
+        <div id="example_fields">
+            <div class="example_pair">
+                <label for="input_0">Example Input:</label><br>
+                <textarea id="input_0" name="input_0" rows="2" cols="50" required></textarea><br><br>
+
+                <label for="output_0">Expected Output:</label><br>
+                <textarea id="output_0" name="output_0" rows="2" cols="50" required></textarea><br><br>
+            </div>
+        </div>
+
+        <button type="submit">Add Question</button>
+    </form>
+
+    <h2>Existing Questions</h2>
+    <ul>
+        {% for question in questions %}
+            <li>
+                <strong>{{ question.title }}</strong><br>
+                <em>{{ question.what_to_do }}</em><br>
+                <strong>Examples:</strong><br>
+                {% for example in question.examples %}
+                    <pre>Input: {{ example.input }}</pre>
+                    <pre>Output: {{ example.output }}</pre><br>
+                {% endfor %}
+            </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        // Dynamically add fields for examples based on the number specified
+        document.getElementById('example_count').addEventListener('input', function() {
+            var count = this.value;
+            var exampleFields = document.getElementById('example_fields');
+            exampleFields.innerHTML = '';
+
+            for (var i = 0; i < count; i++) {
+                var exampleDiv = document.createElement('div');
+                exampleDiv.classList.add('example_pair');
+
+                var inputLabel = document.createElement('label');
+                inputLabel.textContent = 'Example Input:';
+                exampleDiv.appendChild(inputLabel);
+
+                var inputText = document.createElement('textarea');
+                inputText.id = 'input_' + i;
+                inputText.name = 'input_' + i;
+                inputText.rows = 2;
+                inputText.cols = 50;
+                inputText.required = true;
+                exampleDiv.appendChild(inputText);
+
+                var br1 = document.createElement('br');
+                exampleDiv.appendChild(br1);
+
+                var outputLabel = document.createElement('label');
+                outputLabel.textContent = 'Expected Output:';
+                exampleDiv.appendChild(outputLabel);
+
+                var outputText = document.createElement('textarea');
+                outputText.id = 'output_' + i;
+                outputText.name = 'output_' + i;
+                outputText.rows = 2;
+                outputText.cols = 50;
+                outputText.required = true;
+                exampleDiv.appendChild(outputText);
+
+                var br2 = document.createElement('br');
+                exampleDiv.appendChild(br2);
+
+                exampleFields.appendChild(exampleDiv);
+            }
+        });
+    </script>
+</body>
+</html>
