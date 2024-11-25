@@ -3,6 +3,7 @@ const resultDiv = document.getElementById('result');
 const codeArea = document.getElementById('code');
 const warningMessage = document.getElementById('warningMessage');
 let warningCount = 0;
+let warningCoun = 0;
 
 form.addEventListener('submit', function (e) {
     e.preventDefault(); // Prevent form submission
@@ -11,12 +12,12 @@ form.addEventListener('submit', function (e) {
 
     // Display warning if needed
     if (code.trim() === "") {
-        warningCount++;
-        warningMessage.textContent = `Warning ${warningCount}: You haven't written any code.`;
+        warningCoun++;
+        warningMessage.textContent = `Warning ${warningCoun}: You haven't written any code.`;
         warningMessage.style.display = 'block';
         
         // Refresh the page after 3 warnings
-        if (warningCount >= 3) {
+        if (warningCoun >= 3) {
             alert('You have received 3 warnings. The page will now refresh.');
             window.location.reload(); // Refresh the page
         }
@@ -56,46 +57,31 @@ codeArea.addEventListener('keydown', function(event) {
     const cursorPosition = codeArea.selectionStart;
     const codeText = codeArea.value;
 
-    // Check if colon is entered and enter is pressed
     if (event.key === 'Enter') {
-        // Check if the line ends with a colon
-        const lineBeforeCursor = codeText.substring(0, cursorPosition);
-        const lastLine = lineBeforeCursor.split('\n').pop();
+        // Get the text before the cursor and split by lines
+        const lines = codeText.substring(0, cursorPosition).split('\n');
+        const lastLine = lines[lines.length - 1];
 
-        if (lastLine.trim().endsWith(':')) {
-            // Add indentation (4 spaces)
-            const indentation = '    '; // 4 spaces for indentation
-            codeArea.value = codeText.substring(0, cursorPosition) + '\n' + indentation + codeText.substring(cursorPosition);
-            codeArea.setSelectionRange(cursorPosition + indentation.length + 1, cursorPosition + indentation.length + 1);
-            event.preventDefault(); // Prevent default Enter behavior
-        }
-    }
+        // Determine current indentation
+        const currentIndentation = lastLine.match(/^\s*/)[0];
+        const additionalIndentation = lastLine.trim().endsWith(':') ? '    ' : ''; // Add 4 spaces if line ends with a colon
 
-    // Automatically insert closing parenthesis when '(', '[', '{' is typed
-    if (event.key === '(' || event.key === '[' || event.key === '{' || event.key === '"' || event.key === "'") {
-        let closingChar = '';
-        // Handle different types of opening brackets
-        if (event.key === '(') {
-            closingChar = ')';
-        } else if (event.key === '[') {
-            closingChar = ']';
-        } else if (event.key === '{') {
-            closingChar = '}';
-        } else if (event.key === '"') {
-            closingChar = '"';
-        } else if (event.key === "'") {
-            closingChar = "'";
-        }
+        // Insert newline with proper indentation
+        codeArea.value = 
+            codeText.substring(0, cursorPosition) + '\n' + 
+            currentIndentation + additionalIndentation + 
+            codeText.substring(cursorPosition);
+        
+        // Adjust cursor position
+        codeArea.setSelectionRange(
+            cursorPosition + currentIndentation.length + additionalIndentation.length + 1, 
+            cursorPosition + currentIndentation.length + additionalIndentation.length + 1
+        );
 
-        // Insert the closing bracket after the opening bracket
-        const cursorPosition = codeArea.selectionStart;
-        const codeText = codeArea.value;
-
-        codeArea.value = codeText.substring(0, cursorPosition) + event.key + closingChar + codeText.substring(cursorPosition);
-        codeArea.setSelectionRange(cursorPosition + 1, cursorPosition + 1); // Place cursor between the brackets or quotes
-        event.preventDefault(); // Prevent default insertion
+        event.preventDefault(); // Prevent default Enter behavior
     }
 });
+
 
 // Disable copy, cut, paste, and drag-and-drop in the textarea
 codeArea.addEventListener('copy', function(event) {
@@ -136,7 +122,7 @@ document.addEventListener('visibilitychange', function() {
         warningMessage.style.display = 'block';
 
         // Refresh the page after 3 warnings
-        if (warningCount >= 20) {
+        if (warningCount >= 3) {
             alert('You have received 3 warnings. The page will now refresh.');
             window.location.reload(); // Refresh the page
         }
