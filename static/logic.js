@@ -4,7 +4,29 @@ const codeArea = document.getElementById('code');
 const warningMessage = document.getElementById('warningMessage');
 let warningCount = 0;
 let warningCoun = 0;
+function handleScreenResize() {
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
 
+    // Set thresholds for disabling the code editor (e.g., width < 768px or height < 500px)
+    if (screenWidth < 1200 || screenHeight < 500) {
+        // Disable code editor and show warning
+        codeArea.disabled = true;
+        codeArea.value = ""; // Optional: Clear the editor
+        warningMessage.textContent = "Code editor is disabled because the screen is too small or split.";
+        warningMessage.style.display = 'block';
+    } else {
+        // Enable code editor and hide warning
+        codeArea.disabled = false;
+        warningMessage.style.display = 'none';
+    }
+}
+
+// Add event listener for window resize
+window.addEventListener('resize', handleScreenResize);
+
+// Call the function initially to check the screen size on page load
+handleScreenResize();
 form.addEventListener('submit', function (e) {
     e.preventDefault(); // Prevent form submission
 
@@ -56,6 +78,30 @@ form.addEventListener('submit', function (e) {
 codeArea.addEventListener('keydown', function(event) {
     const cursorPosition = codeArea.selectionStart;
     const codeText = codeArea.value;
+    // Auto-pair characters
+    const pairs = {
+        '(': ')',
+        '{': '}',
+        '[': ']',
+        '"': '"',
+        "'": "'"
+    };
+
+    if (pairs[event.key]) {
+        const openChar = event.key;
+        const closeChar = pairs[openChar];
+
+        // Insert the pair and position the cursor in the middle
+        codeArea.value = 
+            codeText.substring(0, cursorPosition) + 
+            openChar + closeChar + 
+            codeText.substring(cursorPosition);
+        
+        // Move cursor to the middle of the pair
+        codeArea.setSelectionRange(cursorPosition + 1, cursorPosition + 1);
+
+        event.preventDefault(); // Prevent the default typing behavior
+    }
 
     if (event.key === 'Enter') {
         // Get the text before the cursor and split by lines
@@ -128,3 +174,5 @@ document.addEventListener('visibilitychange', function() {
         }
     }
 });
+
+
